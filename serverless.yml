@@ -1,0 +1,60 @@
+service: lambda-learn-byte-api
+
+# transpile to ES6/ES7
+plugins:
+  - serverless-webpack
+  - serverless-offline
+  - serverless-plugin-warmup
+
+custom:
+  webpackIncludeModules: true
+  stage: "${opt:stage, self:provider.stage}"
+  serverless-offline:
+    port: 4000
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: prod
+  timeout: 15
+  region: us-west-2
+  environment: ${file(env.yml):${self:custom.stage}}
+
+iamRoleStatements:
+  - Effect: 'Allow'
+    Action:
+      - 'lambda:InvokeFunction'
+    Resource: "*"
+
+# express api functions
+functions:
+  app:
+    warmup: false
+    handler: src/index.handler
+    events:
+      - http: ANY /
+      - http: 'ANY {proxy+}'
+  hello:
+    handler: src/index.handler
+    events:
+      - http: 'GET /hello/'
+  user:
+    handler: src/index.handler
+    events:
+      - http: 'GET /user/'
+  createRepo:
+    handler: src/index.handler
+    events:
+      - http: 'POST /create-course/'
+  courseTree:
+    handler: src/index.handler
+    events:
+      - http: 'GET /course-tree/'
+  userRepos:
+    handler: src/index.handler
+    events:
+      - http: 'GET /user-repos/'
+  deleteRepo:
+    handler: src/index.handler
+    events:
+      - http: 'DELETE /repo/'
